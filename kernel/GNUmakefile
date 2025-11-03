@@ -45,6 +45,8 @@ NASMFLAGS := -g
 # User controllable linker flags. We set none by default.
 LDFLAGS :=
 
+SRCS := src/main.c src/font.c
+
 # Ensure the dependencies have been obtained.
 ifneq ($(filter-out clean distclean,$(MAKECMDGOALS)),)
     ifeq ($(wildcard .deps-obtained),)

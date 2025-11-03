@@ -2,6 +2,7 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include <limine.h>
+#include "font.h"
 
 // Set the base revision to 4, this is recommended as this is the latest
 // base revision described by the Limine boot protocol specification.
@@ -194,7 +195,10 @@ void kmain(void) {
 
     struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];
 
-    // Fill screen with background color
+    // Initialize font
+    font_init();
+
+    // Fill screen
     uint32_t bg_color = 0x004447;
     for (size_t y = 0; y < framebuffer->height; y++) {
         for (size_t x = 0; x < framebuffer->width; x++) {
@@ -203,8 +207,8 @@ void kmain(void) {
         }
     }
 
-    // Draw "CONIX" at position (100, 100) in white
-    draw_string(framebuffer, "CONIX KERNEL", 100, 100, 0xffffff);
+    // Draw text with the proper font
+    font_draw_string(framebuffer, "CONIX Kernel", 100, 100, 0xffffff, bg_color);
 
     hcf();
 }
