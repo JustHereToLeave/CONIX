@@ -194,7 +194,7 @@ void kmain(void) {
     font_init();
     terminal_init(framebuffer, 0xffffff, 0x004447);
     
-    terminal_writeline("CONIX Kernel");
+    terminal_writeline("CONIX Kernel v0.1.1");
     terminal_writeline("Now with PSF support!");
     terminal_writeline("");
     terminal_write("> ");  // Initial prompt

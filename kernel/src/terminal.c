@@ -1,5 +1,6 @@
 #include "terminal.h"
 #include "font.h"
+#include "string.h"
 
 static struct limine_framebuffer *term_fb = NULL;
 static uint32_t term_fg_color = 0xffffff;
@@ -125,10 +126,19 @@ void terminal_handle_input(char c) {
         input_buffer[input_pos] = '\0';
         terminal_putchar('\n');
         
-        if (input_pos > 0) {
-            terminal_write("You typed: ");
-            terminal_writeline(input_buffer);
-        }
+if (input_pos > 0) {
+    // Check what command they typed
+    if (strcmp(input_buffer, "conix") == 0) {
+        terminal_writeline("CONIX Kernel v0.1.1\nby Coen Buck\nReleased November 3rd, 2025");
+    } else if (strcmp(input_buffer, "fortnite") == 0) {
+        terminal_writeline("timmy this is NOT how the terminal works");
+    }  else if (strcmp(input_buffer, "shimboot") == 0) {
+        terminal_writeline("no");
+    } else {
+        terminal_write("command not found: ");
+        terminal_writeline(input_buffer);
+    }
+}
         
         // Clear buffer for next input
         input_pos = 0;
