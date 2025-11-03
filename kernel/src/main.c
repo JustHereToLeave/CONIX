@@ -3,6 +3,8 @@
 #include <stdbool.h>
 #include <limine.h>
 #include "font.h"
+#include "terminal.h"
+#include "idt.h"
 
 // Set the base revision to 4, this is recommended as this is the latest
 // base revision described by the Limine boot protocol specification.
@@ -15,12 +17,6 @@ static volatile LIMINE_BASE_REVISION(4);
 // the compiler does not optimise them away, so, usually, they should
 // be made volatile or equivalent, _and_ they should be accessed at least
 // once or marked as used with the "used" attribute as done here.
-
-__attribute__((used, section(".limine_requests")))
-static volatile struct limine_terminal_request terminal_request = {
-    .id = LIMINE_TERMINAL_REQUEST,
-    .revision = 0
-};
 
 __attribute__((used, section(".limine_requests")))
 static volatile struct limine_framebuffer_request framebuffer_request = {
@@ -195,20 +191,17 @@ void kmain(void) {
 
     struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];
 
-    // Initialize font
     font_init();
-
-    // Fill screen
-    uint32_t bg_color = 0x004447;
-    for (size_t y = 0; y < framebuffer->height; y++) {
-        for (size_t x = 0; x < framebuffer->width; x++) {
-            volatile uint32_t *fb_ptr = framebuffer->address;
-            fb_ptr[y * (framebuffer->pitch / 4) + x] = bg_color;
-        }
+    terminal_init(framebuffer, 0xffffff, 0x004447);
+    
+    terminal_writeline("CONIX Kernel");
+    terminal_writeline("Now with PSF support!");
+    terminal_writeline("");
+    terminal_write("> ");  // Initial prompt
+    
+    idt_init();
+    
+    for (;;) {
+        asm("hlt");
     }
-
-    // Draw text with the proper font
-    font_draw_string(framebuffer, "CONIX Kernel", 100, 100, 0xffffff, bg_color);
-
-    hcf();
 }
