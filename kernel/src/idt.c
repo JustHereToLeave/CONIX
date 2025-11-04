@@ -109,6 +109,13 @@ void idt_init(void) {
         idt[i].zero = 0;
     }
     
+    // Simpler keyboard init
+    while (inb(0x64) & 0x02);  // Wait for controller
+    outb(0x64, 0xAE);           // Enable first PS/2 port
+    
+    // Flush the output buffer
+    inb(0x60);
+    
     // Set keyboard interrupt (IRQ1 = interrupt 0x21)
     idt_set_gate(0x21, (uint64_t)keyboard_handler_asm);
     
