@@ -11,12 +11,3 @@ I don't know. I am actively going to school 5 days a week, only working on CONIX
 On your computer, one day, hopefully. CONIX is entirely developed by me, alone, at my home.
 ## How is CONIX?
 Assuming this question means "how does it work?" I myself barely have an idea of what the answer to that could be. It just does.
-
-# Commands
-There are currently `3` commands available in the CONIX kernel.\
-\
-**`conix`** command: Displays information about the kernel.\
-**`fortnite`** command: For any potential users under 9 years of age.\
-**`shimboot`** command: No.
-
-<sub>There is probably more to come. Eventually.</sub>
