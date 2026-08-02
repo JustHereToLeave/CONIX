@@ -1,5 +1,6 @@
 #ifndef TERMINAL_H
 #define TERMINAL_H
+#define CONIX_VERSION "v0.1.5"
 
 #include <stdint.h>
 #include <limine.h>
@@ -8,6 +9,7 @@ void terminal_init(struct limine_framebuffer *fb, uint32_t fg_color, uint32_t bg
 void terminal_putchar(char c);
 void terminal_write(const char *str);
 void terminal_writeline(const char *str);
+void terminal_print_boot_banner(void);
 void terminal_clear(void);
 void terminal_newline(void);
 void terminal_handle_input(char c);  // New function for input handling

@@ -97,6 +97,43 @@ static void pic_init(void) {
     outb(0xA1, 0xFF);
 }
 
+// Page fault handler (defined in assembly below)
+extern void page_fault_handler_asm(void);
+
+static void print_hex64(uint64_t val) {
+    static const char *digits = "0123456789abcdef";
+    terminal_write("0x");
+    for (int shift = 60; shift >= 0; shift -= 4) {
+        terminal_putchar(digits[(val >> shift) & 0xF]);
+    }
+}
+
+// Called by the asm stub with faulting address (from CR2) in rdi,
+// and the CPU-pushed error code in rsi.
+void page_fault_handler_c(uint64_t fault_addr, uint64_t error_code) {
+    terminal_write("\n*** PAGE FAULT ***\n");
+    terminal_write("Faulting address: ");
+    print_hex64(fault_addr);
+    terminal_putchar('\n');
+
+    terminal_write("Error code: ");
+    print_hex64(error_code);
+    terminal_putchar('\n');
+
+    terminal_write(error_code & 0x1 ? "  - page was present (protection violation)\n"
+                                     : "  - page was not present\n");
+    terminal_write(error_code & 0x2 ? "  - caused by a write\n"
+                                     : "  - caused by a read\n");
+    terminal_write(error_code & 0x4 ? "  - occurred in user mode\n"
+                                     : "  - occurred in kernel mode\n");
+
+    terminal_write("Kernel cannot continue.\n");
+
+    for (;;) {
+        asm volatile("cli; hlt");
+    }
+}
+
 void idt_init(void) {
     // Clear IDT
     for (int i = 0; i < 256; i++) {
@@ -118,6 +155,7 @@ void idt_init(void) {
     
     // Set keyboard interrupt (IRQ1 = interrupt 0x21)
     idt_set_gate(0x21, (uint64_t)keyboard_handler_asm);
+    idt_set_gate(14, (uint64_t)page_fault_handler_asm);
     
     // Load IDT
     idtp.limit = sizeof(idt) - 1;
@@ -167,5 +205,45 @@ asm(
     "    popq %rcx\n"
     "    popq %rbx\n"
     "    popq %rax\n"
+    "    iretq\n"
+);
+
+asm(
+    ".global page_fault_handler_asm\n"
+    "page_fault_handler_asm:\n"
+    "    pushq %rax\n"
+    "    pushq %rbx\n"
+    "    pushq %rcx\n"
+    "    pushq %rdx\n"
+    "    pushq %rsi\n"
+    "    pushq %rdi\n"
+    "    pushq %rbp\n"
+    "    pushq %r8\n"
+    "    pushq %r9\n"
+    "    pushq %r10\n"
+    "    pushq %r11\n"
+    "    pushq %r12\n"
+    "    pushq %r13\n"
+    "    pushq %r14\n"
+    "    pushq %r15\n"
+    "    movq %cr2, %rdi\n"       // arg1: faulting address
+    "    movq 120(%rsp), %rsi\n" // arg2: CPU-pushed error code
+    "    call page_fault_handler_c\n"
+    "    popq %r15\n"
+    "    popq %r14\n"
+    "    popq %r13\n"
+    "    popq %r12\n"
+    "    popq %r11\n"
+    "    popq %r10\n"
+    "    popq %r9\n"
+    "    popq %r8\n"
+    "    popq %rbp\n"
+    "    popq %rdi\n"
+    "    popq %rsi\n"
+    "    popq %rdx\n"
+    "    popq %rcx\n"
+    "    popq %rbx\n"
+    "    popq %rax\n"
+    "    addq $8, %rsp\n"        // discard the CPU-pushed error code
     "    iretq\n"
 );

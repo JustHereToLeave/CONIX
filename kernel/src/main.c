@@ -97,85 +97,6 @@ static void hcf(void) {
     }
 }
 
-// Simple 8x8 bitmap font (partial)
-// Each character is 8 bytes, each byte is a row of 8 pixels
-static const uint8_t font_8x8[128][8] = {
-    ['C'] = {
-        0b00111100,
-        0b01100110,
-        0b01100000,
-        0b01100000,
-        0b01100000,
-        0b01100110,
-        0b00111100,
-        0b00000000,
-    },
-    ['O'] = {
-        0b00111100,
-        0b01100110,
-        0b01100110,
-        0b01100110,
-        0b01100110,
-        0b01100110,
-        0b00111100,
-        0b00000000,
-    },
-    ['N'] = {
-        0b01100110,
-        0b01110110,
-        0b01111110,
-        0b01111110,
-        0b01101110,
-        0b01100110,
-        0b01100110,
-        0b00000000,
-    },
-    ['I'] = {
-        0b00111100,
-        0b00011000,
-        0b00011000,
-        0b00011000,
-        0b00011000,
-        0b00011000,
-        0b00111100,
-        0b00000000,
-    },
-    ['X'] = {
-        0b01100110,
-        0b01100110,
-        0b00111100,
-        0b00011000,
-        0b00111100,
-        0b01100110,
-        0b01100110,
-        0b00000000,
-    },
-};
-
-// Draw a single character at x, y position
-void draw_char(struct limine_framebuffer *fb, char c, size_t x, size_t y, uint32_t color) {
-    for (size_t row = 0; row < 8; row++) {
-        uint8_t byte = font_8x8[(int)c][row];
-        for (size_t col = 0; col < 8; col++) {
-            if (byte & (1 << (7 - col))) {
-                size_t pixel_x = x + col;
-                size_t pixel_y = y + row;
-                if (pixel_x < fb->width && pixel_y < fb->height) {
-                    volatile uint32_t *fb_ptr = fb->address;
-                    fb_ptr[pixel_y * (fb->pitch / 4) + pixel_x] = color;
-                }
-            }
-        }
-    }
-}
-
-// Draw a string at x, y position
-void draw_string(struct limine_framebuffer *fb, const char *str, size_t x, size_t y, uint32_t color) {
-    for (size_t i = 0; str[i] != '\0'; i++) {
-        draw_char(fb, str[i], x + (i * 8), y, color);
-    }
-}
-
 // The following will be our kernel's entry point.
 // If renaming kmain() to something else, make sure to change the
 // linker script accordingly.
@@ -193,14 +114,11 @@ void kmain(void) {
 
     font_init();
     terminal_init(framebuffer, 0xffffff, 0x004447);
-    
-    terminal_writeline("CONIX Kernel v0.1.1");
-    terminal_writeline("Now with PSF support!");
-    terminal_writeline("");
-    terminal_write("> ");  // Initial prompt
-    
+
+    terminal_print_boot_banner();
+
     idt_init();
-    
+
     for (;;) {
         asm("hlt");
     }
